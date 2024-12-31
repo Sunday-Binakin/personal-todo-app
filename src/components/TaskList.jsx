@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   TextField,
   Button,
@@ -23,6 +23,21 @@ const TaskList = () => {
   const [error, setError] = useState('');
   const ITEMS_PER_PAGE = 5;
 
+  // Add debounced search effect
+  const debouncedSearch = useCallback(
+    (() => {
+      let timeoutId;
+      return (searchValue) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          setCurrentPage(0); // Reset to first page when searching
+          setSearchQuery(searchValue);
+        }, 500); // Wait 500ms after last keystroke before searching
+      };
+    })(),
+    []
+  );
+
   // Fetch tasks from the API
   useEffect(() => {
     const fetchTasks = async () => {
@@ -32,7 +47,6 @@ const TaskList = () => {
         const response = await apiService.getAllTasks({
           page: currentPage + 1,
           limit: ITEMS_PER_PAGE,
-          search: searchQuery
         });
 
         setTasks(response.tasks);
@@ -49,7 +63,12 @@ const TaskList = () => {
     };
 
     fetchTasks();
-  }, [currentPage, searchQuery]);
+  }, [currentPage]);
+
+  // Add filtered tasks logic
+  const filteredTasks = tasks.filter(task => 
+    task.title.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   const handleTaskCreated = () => {
     setSuccessMessage('Task created successfully!');
@@ -91,8 +110,8 @@ const TaskList = () => {
           label="Search Tasks"
           variant="outlined"
           fullWidth
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          defaultValue={searchQuery}
+          onChange={(e) => debouncedSearch(e.target.value)}
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
@@ -147,9 +166,9 @@ const TaskList = () => {
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 8 }}>
           <CircularProgress size={48} />
         </Box>
-      ) : error ? null : tasks.length > 0 ? (
+      ) : error ? null : filteredTasks.length > 0 ? (
         <Box sx={{ mb: 4 }}>
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <Card
               key={task.id}
               elevation={2}
@@ -254,11 +273,11 @@ const TaskList = () => {
           Previous
         </Button>
         <Typography>
-          Page {currentPage + 1} of {Math.ceil(totalTasks / ITEMS_PER_PAGE)}
+          Page {currentPage + 1} of {Math.ceil(filteredTasks.length / ITEMS_PER_PAGE)}
         </Typography>
         <Button
           onClick={() => setCurrentPage((prev) => prev + 1)}
-          disabled={currentPage >= Math.ceil(totalTasks / ITEMS_PER_PAGE) - 1}
+          disabled={currentPage >= Math.ceil(filteredTasks.length / ITEMS_PER_PAGE) - 1}
           sx={{
             textTransform: 'none',
             fontWeight: 600
