@@ -60,126 +60,226 @@ const TaskList = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4 }}>
-      <Typography variant="h4" align="center" gutterBottom>
-        Task List
-      </Typography>
+    <Container maxWidth="md" sx={{ mt: 8, mb: 8 }}>
+      {/* Header Section */}
+      <Box sx={{ mb: 6, textAlign: 'center' }}>
+        <Typography 
+          variant="h3" 
+          component="h1" 
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+            backgroundClip: 'text',
+            color: 'transparent',
+            mb: 2
+          }}
+        >
+          Task List
+        </Typography>
+      </Box>
 
-      {/* Search bar */}
-      <TextField
-        label="Search Tasks"
-        variant="outlined"
-        fullWidth
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      {/* Add New Task button */}
-      <Button
-        component={Link}
-        to="/new"
-        variant="contained"
-        color="primary"
-        sx={{ mb: 2, mt: 1 }}
-        onClick={handleTaskCreated}
+      {/* Control Panel */}
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          gap: 2, 
+          mb: 4,
+          flexDirection: { xs: 'column', sm: 'row' }
+        }}
       >
-        Add New Task
-      </Button>
+        <TextField
+          label="Search Tasks"
+          variant="outlined"
+          fullWidth
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 2,
+              backgroundColor: 'background.paper',
+              '&:hover': {
+                boxShadow: '0 0 0 2px rgba(25, 118, 210, 0.1)',
+              },
+            }
+          }}
+        />
+
+        <Button
+          component={Link}
+          to="/new"
+          variant="contained"
+          color="primary"
+          onClick={handleTaskCreated}
+          sx={{
+            minWidth: { xs: '100%', sm: '200px' },
+            height: '56px',
+            borderRadius: 2,
+            textTransform: 'none',
+            fontSize: '1rem',
+            fontWeight: 600,
+            boxShadow: 2,
+            '&:hover': {
+              boxShadow: 4,
+            }
+          }}
+        >
+          Add New Task
+        </Button>
+      </Box>
 
       {/* Error Message */}
       {error && (
-        <Typography 
-          color="error" 
-          align="center" 
-          sx={{ mb: 2 }}
+        <Box 
+          sx={{ 
+            mb: 4, 
+            p: 2, 
+            borderRadius: 2,
+            backgroundColor: 'error.light',
+            color: 'error.dark'
+          }}
         >
-          {error}
-        </Typography>
+          <Typography align="center">{error}</Typography>
+        </Box>
       )}
 
       {/* Tasks List */}
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-          <CircularProgress />
+        <Box sx={{ display: 'flex', justifyContent: 'center', my: 8 }}>
+          <CircularProgress size={48} />
         </Box>
       ) : error ? null : tasks.length > 0 ? (
-        tasks.map((task) => (
-          <Card
-            key={task.id}
-            sx={{
-              mb: 2,
-              bgcolor: task.completed
-                ? 'action.hover'
-                : 'background.paper',
-              borderLeft: task.completed ? '4px solid #4caf50' : 'none',
-            }}
-          >
-            <CardContent>
-              <Typography
-                variant="h6"
-                sx={{
-                  textDecoration: task.completed ? 'line-through' : 'none',
-                  color: task.completed
-                    ? 'text.secondary'
-                    : 'text.primary',
-                }}
-              >
-                {task.title}
-              </Typography>
-              <Typography color="textSecondary">
-                Due: {new Date(task.dueDate).toLocaleDateString()}
-              </Typography>
-              <Typography>
-                Status: {task.completed ? 'Completed' : 'Pending'}
-                <Link
-                  to={`/edit/${task.id}`}
-                  style={{
-                    marginLeft: '8px',
-                    textDecoration: 'underline',
-                    color: '#1976d2',
+        <Box sx={{ mb: 4 }}>
+          {tasks.map((task) => (
+            <Card
+              key={task.id}
+              elevation={2}
+              sx={{
+                mb: 2,
+                borderRadius: 2,
+                transition: 'all 0.3s ease',
+                bgcolor: task.completed ? 'grey.50' : 'background.paper',
+                borderLeft: task.completed ? '4px solid #4caf50' : '4px solid #1976d2',
+                '&:hover': {
+                  transform: 'translateY(-2px)',
+                  boxShadow: 4,
+                }
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    textDecoration: task.completed ? 'line-through' : 'none',
+                    color: task.completed ? 'text.secondary' : 'text.primary',
+                    mb: 1,
+                    fontWeight: 600
                   }}
                 >
-                  Edit
-                </Link>
-              </Typography>
-            </CardContent>
-          </Card>
-        ))
+                  {task.title}
+                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Typography 
+                    sx={{ 
+                      color: 'text.secondary',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1
+                    }}
+                  >
+                    Due: {new Date(task.dueDate).toLocaleDateString()}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Typography
+                      sx={{
+                        px: 2,
+                        py: 0.5,
+                        borderRadius: 1,
+                        backgroundColor: task.completed ? 'success.light' : 'info.light',
+                        color: task.completed ? 'success.dark' : 'info.dark',
+                        fontSize: '0.875rem',
+                      }}
+                    >
+                      {task.completed ? 'Completed' : 'In Progress'}
+                    </Typography>
+                    <Link
+                      to={`/edit/${task.id}`}
+                      style={{
+                        textDecoration: 'none',
+                      }}
+                    >
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                          borderRadius: 1,
+                          textTransform: 'none',
+                        }}
+                      >
+                        Edit
+                      </Button>
+                    </Link>
+                  </Box>
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
+        </Box>
       ) : (
-        <Typography align="center" color="textSecondary">
-          No tasks found.
-        </Typography>
+        <Box>
+          <Typography>No tasks found.</Typography>
+        </Box>
       )}
 
       {/* Pagination */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          mt: 4,
+          p: 2,
+          borderRadius: 2,
+          backgroundColor: 'background.paper',
+          boxShadow: 1
+        }}
+      >
         <Button
           onClick={() => setCurrentPage((prev) => prev - 1)}
           disabled={currentPage === 0}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600
+          }}
         >
           Previous
         </Button>
-        <Typography sx={{ alignSelf: 'center' }}>
-          Page {currentPage + 1} 
+        <Typography>
+          Page {currentPage + 1} of {Math.ceil(totalTasks / ITEMS_PER_PAGE)}
         </Typography>
-        {/* <Typography sx={{ alignSelf: 'center' }}>
-          Page {currentPage + 1} of {totalTasks ? Math.ceil(totalTasks / ITEMS_PER_PAGE) : 1}
-        </Typography> */}
         <Button
           onClick={() => setCurrentPage((prev) => prev + 1)}
           disabled={currentPage >= Math.ceil(totalTasks / ITEMS_PER_PAGE) - 1}
+          sx={{
+            textTransform: 'none',
+            fontWeight: 600
+          }}
         >
           Next
         </Button>
       </Box>
 
-      {/* Two Snackbars - one for success, one for errors */}
+      {/* Snackbars */}
       <Snackbar
         open={!!successMessage}
         autoHideDuration={3000}
         onClose={handleCloseSnackbar}
         message={successMessage}
+        sx={{
+          '& .MuiSnackbarContent-root': {
+            backgroundColor: 'success.main',
+            borderRadius: 2
+          }
+        }}
       />
       <Snackbar
         open={!!error}
@@ -187,7 +287,10 @@ const TaskList = () => {
         onClose={() => setError('')}
         message={error}
         ContentProps={{
-          sx: { backgroundColor: 'error.main' }
+          sx: { 
+            backgroundColor: 'error.main',
+            borderRadius: 2
+          }
         }}
       />
     </Container>
