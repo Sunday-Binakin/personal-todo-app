@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL, // Ensure your environment variable is set for the base URL
+  baseURL: import.meta.env.VITE_API_BASE_URL, 
 });
  
  
@@ -9,16 +9,14 @@ const api = axios.create({
 // Task service functions
 export const apiService = {
   // Fetch all tasks with pagination and optional search query
-  getAllTasks: async ({ page = 1, limit = 10, searchQuery = '' } = {}) => {
+  getAllTasks: async () => {
     try {
       const response = await api.get('api/todos', {
         params: {
-          page: Math.max(1, page), // Remove the subtraction, ensure minimum of 1
-          limit,
-          search: searchQuery,
-        },
+          limit: 1000
+        }
       });
-
+      
       return {
         tasks: response.data.todos.map(todo => ({
           id: todo._id,
@@ -30,14 +28,11 @@ export const apiService = {
           updatedAt: todo.updatedAt,
         })),
         pagination: {
-          totalPages: response.data.totalPages,
-          currentPage: response.data.currentPage,
           total: response.data.total,
         },
-        message: response.data.message,
       };
     } catch (error) {
-      console.error('Error retrieving tasks:', error.response ? error.response.data : error);
+      console.error('Error retrieving tasks:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -73,20 +68,18 @@ export const apiService = {
         completed: task.completed,
       });
 
-      // const todo = response.data.todo;
-
-      // return {
-      //   _id: todo.id,
-      //   title: todo.title,
-      //   description: todo.description,
-      //   dueDate: todo.dueDate,
-      //   completed: todo.completed,
-      //   createdAt: todo.createdAt,
-      //   updatedAt: todo.updatedAt,
-      // };
-      return response;
+      const todo = response.data.todo;
+      return {
+        id: todo._id,
+        title: todo.title,
+        description: todo.description,
+        dueDate: todo.dueDate,
+        completed: todo.completed,
+        createdAt: todo.createdAt,
+        updatedAt: todo.updatedAt,
+      };
     } catch (error) {
-      console.error('Error creating task:', error.response ? error.response.data : error);
+      console.error('Error creating task:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -100,9 +93,8 @@ export const apiService = {
         dueDate: updates.dueDate,
         completed: updates.completed,
       });
-
+return response;
       // const todo = response.data.todo;
-
       // return {
       //   id: todo._id,
       //   title: todo.title,
@@ -112,9 +104,8 @@ export const apiService = {
       //   createdAt: todo.createdAt,
       //   updatedAt: todo.updatedAt,
       // };
-      return response;
     } catch (error) {
-      console.error('Error updating task:', error.response ? error.response.data : error);
+      console.error('Error updating task:', error.response?.data || error.message);
       throw error;
     }
   },

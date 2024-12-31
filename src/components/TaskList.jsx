@@ -18,43 +18,27 @@ const TaskList = () => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
-  const [totalTasks, setTotalTasks] = useState(0);
   const [successMessage, setSuccessMessage] = useState('');
   const [error, setError] = useState('');
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = 3; // Set to display 3 items per page
 
-  // Add debounced search effect
-  const debouncedSearch = useCallback(
-    (() => {
-      let timeoutId;
-      return (searchValue) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          setCurrentPage(0); // Reset to first page when searching
-          setSearchQuery(searchValue);
-        }, 500); // Wait 500ms after last keystroke before searching
-      };
-    })(),
-    []
-  );
+  // Add handleCloseSnackbar function
+  const handleCloseSnackbar = () => {
+    setSuccessMessage('');
+    setError('');
+  };
 
-  // Fetch tasks from the API
+  // Fetch all tasks at once
   useEffect(() => {
     const fetchTasks = async () => {
       setLoading(true);
       setError('');
       try {
-        const response = await apiService.getAllTasks({
-          page: currentPage + 1,
-          limit: ITEMS_PER_PAGE,
-        });
-
+        const response = await apiService.getAllTasks();
         setTasks(response.tasks);
-        setTotalTasks(response.pagination.total);
       } catch (error) {
         console.error('Error retrieving tasks:', error);
         setTasks([]);
-        setTotalTasks(0);
         const errorMessage = error.response?.data?.message || 'Failed to load tasks. Please try again later.';
         setError(errorMessage);
       } finally {
@@ -63,19 +47,27 @@ const TaskList = () => {
     };
 
     fetchTasks();
-  }, [currentPage]);
+  }, []); 
 
-  // Add filtered tasks logic
+  // Client-side filtering
   const filteredTasks = tasks.filter(task => 
-    task.title.toLowerCase().includes(searchQuery.toLowerCase())
+    task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    task.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleTaskCreated = () => {
-    setSuccessMessage('Task created successfully!');
-  };
+  // Pagination calculation
+  const totalPages = Math.ceil(filteredTasks.length / ITEMS_PER_PAGE);
+  
+  // Get current page items
+  const currentTasks = filteredTasks.slice(
+    currentPage * ITEMS_PER_PAGE,
+    (currentPage + 1) * ITEMS_PER_PAGE
+  );
 
-  const handleCloseSnackbar = () => {
-    setSuccessMessage('');
+  // Simple search handler
+  const handleSearch = (value) => {
+    setSearchQuery(value);
+    setCurrentPage(0); // Reset to first page when searching
   };
 
   return (
@@ -110,8 +102,8 @@ const TaskList = () => {
           label="Search Tasks"
           variant="outlined"
           fullWidth
-          defaultValue={searchQuery}
-          onChange={(e) => debouncedSearch(e.target.value)}
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
           sx={{
             '& .MuiOutlinedInput-root': {
               borderRadius: 2,
@@ -128,7 +120,6 @@ const TaskList = () => {
           to="/new"
           variant="contained"
           color="primary"
-          onClick={handleTaskCreated}
           sx={{
             minWidth: { xs: '100%', sm: '200px' },
             height: '56px',
@@ -168,7 +159,7 @@ const TaskList = () => {
         </Box>
       ) : error ? null : filteredTasks.length > 0 ? (
         <Box sx={{ mb: 4 }}>
-          {filteredTasks.map((task) => (
+          {currentTasks.map((task) => (
             <Card
               key={task.id}
               elevation={2}
@@ -213,27 +204,10 @@ const TaskList = () => {
                       color: 'text.secondary',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: 1,
-                      backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                      px: 2,
-                      py: 0.5,
-                      borderRadius: 4,
-                      fontSize: '0.875rem',
-                      fontWeight: 500,
-                      '& .date-label': {
-                        color: 'primary.main',
-                        fontWeight: 600,
-                        marginRight: 1
-                      }
+                      gap: 1
                     }}
                   >
-                    <span className="date-label">Due:</span>
-                    {new Date(task.dueDate).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
+                    Due: {new Date(task.dueDate).toLocaleDateString()}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Typography
@@ -277,45 +251,47 @@ const TaskList = () => {
         </Box>
       )}
 
-      {/* Pagination */}
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center',
-          mt: 4,
-          p: 2,
-          borderRadius: 2,
-          backgroundColor: 'background.paper',
-          boxShadow: 1
-        }}
-      >
-        <Button
-          onClick={() => setCurrentPage((prev) => prev - 1)}
-          disabled={currentPage === 0}
-          sx={{
-            textTransform: 'none',
-            fontWeight: 600
+      {/* Pagination Controls */}
+      {filteredTasks.length > 0 && (
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            justifyContent: 'space-between', 
+            alignItems: 'center',
+            mt: 4,
+            p: 2,
+            borderRadius: 2,
+            backgroundColor: 'background.paper',
+            boxShadow: 1
           }}
         >
-          Previous
-        </Button>
-        <Typography>
-          Page {currentPage + 1} of {Math.ceil(filteredTasks.length / ITEMS_PER_PAGE)}
-        </Typography>
-        <Button
-          onClick={() => setCurrentPage((prev) => prev + 1)}
-          disabled={currentPage >= Math.ceil(filteredTasks.length / ITEMS_PER_PAGE) - 1}
-          sx={{
-            textTransform: 'none',
-            fontWeight: 600
-          }}
-        >
-          Next
-        </Button>
-      </Box>
+          <Button
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+            disabled={currentPage === 0}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Previous
+          </Button>
+          <Typography>
+            Page {currentPage + 1} of {totalPages}
+          </Typography>
+          <Button
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            disabled={currentPage >= totalPages - 1}
+            sx={{
+              textTransform: 'none',
+              fontWeight: 600
+            }}
+          >
+            Next
+          </Button>
+        </Box>
+      )}
 
-      {/* Snackbars */}
+      {/* Updated Snackbars */}
       <Snackbar
         open={!!successMessage}
         autoHideDuration={3000}
@@ -331,7 +307,7 @@ const TaskList = () => {
       <Snackbar
         open={!!error}
         autoHideDuration={5000}
-        onClose={() => setError('')}
+        onClose={handleCloseSnackbar}
         message={error}
         ContentProps={{
           sx: { 
