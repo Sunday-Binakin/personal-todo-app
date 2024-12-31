@@ -214,26 +214,23 @@ const TaskList = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 1,
-                      backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                      px: 2,
-                      py: 0.5,
-                      borderRadius: 4,
                       fontSize: '0.875rem',
                       fontWeight: 500,
-                      '& .date-label': {
+                      '& .date': {
                         color: 'primary.main',
                         fontWeight: 600,
-                        marginRight: 1
+                        ml: 0.5
                       }
                     }}
                   >
-                    <span className="date-label">Due:</span>
-                    {new Date(task.dueDate).toLocaleDateString('en-US', {
-                      weekday: 'short',
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
+                    Due: <span className="date">
+                      {new Date(task.dueDate).toLocaleDateString('en-US', {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Typography
