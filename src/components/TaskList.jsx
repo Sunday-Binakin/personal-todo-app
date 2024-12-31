@@ -190,11 +190,22 @@ const TaskList = () => {
                   sx={{
                     textDecoration: task.completed ? 'line-through' : 'none',
                     color: task.completed ? 'text.secondary' : 'text.primary',
-                    mb: 1,
-                    fontWeight: 600
+                    mb: 0.5,
+                    fontWeight: 700
                   }}
                 >
                   {task.title}
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    textDecoration: task.completed ? 'line-through' : 'none',
+                    color: task.completed ? 'text.secondary' : 'text.secondary',
+                    mb: 1,
+                    fontWeight: 400
+                  }}
+                >
+                  {task.description}
                 </Typography>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography 
